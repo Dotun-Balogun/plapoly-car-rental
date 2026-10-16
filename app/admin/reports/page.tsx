@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
-import { Download } from "lucide-react";
+import { CalendarCheck, Download, Percent, TrendingUp, Wallet } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader, StatCard } from "@/components/admin-ui";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CalendarCheck, Percent, TrendingUp, Wallet } from "lucide-react";
 import { formatNaira } from "@/lib/utils";
 import type { Payment, Reservation, Vehicle } from "@/lib/types";
 
@@ -85,17 +84,36 @@ export default async function AdminReportsPage() {
         <StatCard label="Cancellation rate" value={`${cancelRate}%`} hint={`${cancelled} cancelled`} icon={Percent} />
       </div>
 
-      <div className="mt-6 grid gap-6 xl:grid-cols-2">
+      <div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Revenue, last 6 months</CardTitle>
             <CardDescription>Verified payments only.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex h-52 items-end gap-3" role="img" aria-label="Monthly revenue bar chart">
+            {/* Phones: a simple list, one bar per month */}
+            <ul className="space-y-4 sm:hidden">
               {months.map((m) => (
-                <div key={m.key} className="flex h-full flex-1 flex-col items-center justify-end gap-2">
-                  <span className="text-muted-foreground text-[11px]">{m.total > 0 ? formatNaira(m.total) : ""}</span>
+                <li key={m.key}>
+                  <div className="mb-1.5 flex items-center justify-between gap-3 text-sm">
+                    <span className="font-medium">{m.label}</span>
+                    <span className="text-muted-foreground">{formatNaira(m.total)}</span>
+                  </div>
+                  <div className="bg-muted h-2.5 overflow-hidden rounded-full">
+                    <div
+                      className="bg-primary h-full rounded-full"
+                      style={{ width: `${(m.total / maxMonth) * 100}%` }}
+                    />
+                  </div>
+                </li>
+              ))}
+            </ul>
+
+            {/* Tablets and computers: vertical bars */}
+            <div className="hidden h-52 items-end gap-3 sm:flex" role="img" aria-label="Monthly revenue bar chart">
+              {months.map((m) => (
+                <div key={m.key} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-2">
+                  <span className="text-muted-foreground text-[10px]">{m.total > 0 ? formatNaira(m.total) : ""}</span>
                   <div
                     className="bg-primary w-full rounded-t-md"
                     style={{ height: `${Math.max((m.total / maxMonth) * 100, m.total > 0 ? 4 : 1)}%`, minHeight: 3 }}
@@ -107,7 +125,7 @@ export default async function AdminReportsPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="min-w-0">
           <CardHeader>
             <CardTitle>Most booked vehicles</CardTitle>
             <CardDescription>Excludes cancelled reservations.</CardDescription>
@@ -115,7 +133,7 @@ export default async function AdminReportsPage() {
           {top.length === 0 ? (
             <p className="text-muted-foreground px-6 pb-8 text-sm">No bookings yet.</p>
           ) : (
-            <Table>
+            <Table className="min-w-[380px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Vehicle</TableHead>
@@ -126,7 +144,9 @@ export default async function AdminReportsPage() {
               <TableBody>
                 {top.map((t) => (
                   <TableRow key={t.vehicle!.id}>
-                    <TableCell className="font-semibold">{t.vehicle!.brand} {t.vehicle!.model}</TableCell>
+                    <TableCell className="font-semibold">
+                      {t.vehicle!.brand} {t.vehicle!.model}
+                    </TableCell>
                     <TableCell>{t.bookings}</TableCell>
                     <TableCell>{formatNaira(t.revenue)}</TableCell>
                   </TableRow>
@@ -142,7 +162,7 @@ export default async function AdminReportsPage() {
           <CardTitle>Download data</CardTitle>
           <CardDescription>CSV files open in Excel or Google Sheets.</CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-wrap gap-3">
+        <CardContent className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
           {exports.map((e) => (
             <Button key={e.type} asChild variant="outline">
               <a href={`/admin/reports/export?type=${e.type}`} download>
