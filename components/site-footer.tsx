@@ -36,7 +36,7 @@ export function SiteFooter() {
         </div>
       </div>
       <div className="border-t border-white/10 py-5 text-center text-xs text-white/50">
-        © {new Date().getFullYear()} {config.appName}. All rights reserved.
+        © {new Date().getFullYear()} {config.appName} plateau state polytechnic. All rights reserved.
       </div>
     </footer>
   );
